@@ -1,0 +1,11 @@
+main: redlime.fishing.Main
+name: FishingRodKnockback
+version: '1.4.0'
+description: Added fishing rod knockback at 1.8.9 version
+author: RED_LIME
+commands:
+  fishingknockback:
+    aliases: fkb
+    permission: fishingkb.admin
+    permission-message: You don't have permission :(
+    description: plugin's info

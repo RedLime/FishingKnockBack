@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="FishingKnockBack_">
+    <output-path>$USER_HOME$/Desktop/SEV/TEST/plugins</output-path>
+    <root id="archive" name="FishingKnockBack_.jar">
+      <element id="module-output" name="FishingKnockBack" />
+      <element id="library" level="project" name="spigot-api-1.12.2-R0.1-SNAPSHOT" />
+    </root>
+  </artifact>
+</component>
