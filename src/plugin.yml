@@ -1,8 +1,12 @@
 main: redlime.fishing.Main
 name: FishingRodKnockback
-version: '1.4.0'
+version: '1.4.1'
 description: Added fishing rod knockback at 1.8.9 version
 author: RED_LIME
+loadbefore:
+  - ViaVersion
+  - ProtocolSupport
+  - OldCombatMechanics
 commands:
   fishingknockback:
     aliases: fkb
