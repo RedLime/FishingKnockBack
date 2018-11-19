@@ -1,7 +1,7 @@
 # FishingKnockBack
 It is a plugin that implements the lower version fishing rod knockback in the upper version.
 
-Permission and Command :
+Permission and Command : \
 /fishingknockback - fishingkb.admin \
 /fishingknockback on - fishingkb.admin \
 /fishingknockback off - fishingkb.admin \
