@@ -1,21 +1,27 @@
 package redlime.fishing;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
+import sun.awt.CausedFocusEvent;
 
 
+@SuppressWarnings("ALL")
 public class Main extends JavaPlugin implements Listener {
     boolean kbtoggle = true;
     boolean debug = false;
@@ -35,7 +41,7 @@ public class Main extends JavaPlugin implements Listener {
         ent.add("SILVERFISH"); ent.add("SKELETON"); ent.add("SKELETON_HORSE"); ent.add("SLIME"); ent.add("SNOWMAN");
         ent.add("SPIDER"); ent.add("STRAY"); ent.add("VEX"); ent.add("VILLAGER"); ent.add("VINDICATOR"); ent.add("WITCH");
         ent.add("WITHER"); ent.add("WITHER_SKELETON"); ent.add("WOLF"); ent.add("ZOMBIE"); ent.add("ZOMBIE_HORSE");
-        ent.add("ZOMBIE_VILLAGER"); ent.add("DONKEY");
+        ent.add("ZOMBIE_VILLAGER"); ent.add("DONKEY"); ent.add("PLAYER");
         if (ent.contains(target)) {
             return true;
         }
@@ -52,10 +58,22 @@ public class Main extends JavaPlugin implements Listener {
 
     public boolean onCommand(CommandSender sender, Command cmd, String lable, String[] args) {
         Player p = (Player) sender;
+
+        getCommand("fishingknockback").setTabCompleter(new TabCompleter() {
+            @Override
+            public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] strings) {
+                List<String> list = new ArrayList<>();
+                if (command.getName().equalsIgnoreCase("fishingknockback") && strings.length == 0) {
+                    list.add("americano");
+                    return list;
+                }
+                return null;
+            }});
+
         if (lable.equalsIgnoreCase("fishingknockback") && p.hasPermission("fishingkb.admin")) {
             if(args.length == 0) {
-                p.sendMessage(ChatColor.GREEN + "==FishingRod Knockback by RED_LIME==");
-                p.sendMessage(ChatColor.GREEN + "version 1.4.0");
+                p.sendMessage(ChatColor.GREEN + "\n==FishingRod Knockback by RED_LIME==");
+                p.sendMessage(ChatColor.GREEN + "Version : " + getServer().getPluginManager().getPlugin("FishingRodKnockback").getDescription().getVersion());
                 p.sendMessage(ChatColor.GREEN + "/fishingknockback on/off - toggle knockback");
                 p.sendMessage(ChatColor.GREEN + "/fishingknockback debug");
                 p.sendMessage(ChatColor.GREEN + "/fishingknockback hook - toggle hooking knockback");
@@ -102,8 +120,8 @@ public class Main extends JavaPlugin implements Listener {
                     return false;
                 }
                 else{
-                    p.sendMessage(ChatColor.GREEN + "==FishingRod Knockback by RED_LIME==");
-                    p.sendMessage(ChatColor.GREEN + "version 1.4.0");
+                    p.sendMessage(ChatColor.GREEN + "\n==FishingRod Knockback by RED_LIME==");
+                    p.sendMessage(ChatColor.GREEN + "Version : " + getServer().getPluginManager().getPlugin("FishingRodKnockback").getDescription().getVersion());
                     p.sendMessage(ChatColor.GREEN + "/fishingknockback on/off - toggle knockback");
                     p.sendMessage(ChatColor.GREEN + "/fishingknockback debug");
                     p.sendMessage(ChatColor.GREEN + "/fishingknockback hook - toggle hooking knockback");
@@ -128,7 +146,7 @@ public class Main extends JavaPlugin implements Listener {
             return;
         }
 
-        if (e.getHitEntity().getType() != EntityType.PLAYER && entitytypes(e.getHitEntity().getType().toString()) == true) { //엔티티 처리
+        if (entitytypes(e.getHitEntity().getType().toString()) == true) { //엔티티 처리
             FishHook hook = (FishHook) e.getEntity();
             Player hookShooter = (Player) hook.getShooter();
             LivingEntity hitEntity = (LivingEntity) e.getHitEntity();
@@ -141,60 +159,45 @@ public class Main extends JavaPlugin implements Listener {
             }
             if (hitEntity.getNoDamageTicks() >= 8.5) {
                 hook.remove();
+                hookShooter.getItemInHand().setDurability((short) (hookShooter.getItemInHand().getDurability() + 1));
+                if (hookShooter.getItemInHand().getDurability() <= 64) {
+                    hookShooter.setItemInHand(null);
+                }
                 return;
             }
             else if (hitEntity.getNoDamageTicks() < 8.5 && hitEntity.getLocation().getWorld().getBlockAt(hitEntity.getLocation()).getType().toString() != "AIR") {
                 hitEntity.setNoDamageTicks(0);
             }
-            hitEntity.damage(0.01, hookShooter);
-            hitEntity.setVelocity(new Vector(kx, 0.375, kz));
-            if (endkbtoggle == false) {
-                hook.remove();
-            }
+            hitEntity.damage(0.001, hookShooter);
+            double upVel = 0.37;
+            if (hitEntity.isOnGround() == false) { upVel = 0; }
+            hitEntity.setVelocity(new Vector(kx, upVel, kz));
+            if (endkbtoggle == false) { hook.remove(); }
             hitEntity.setNoDamageTicks(18);
             return;
         }
-
-        if (e.getHitEntity().getType() == EntityType.PLAYER) { //플레이어 처리
-            FishHook hook = (FishHook) e.getEntity();
-            Player rodder = (Player) hook.getShooter();
-            Player player = (Player) e.getHitEntity();
-            double kx = hook.getLocation().getDirection().getX() / 2.5;
-            double kz = hook.getLocation().getDirection().getZ() / 2.5;
-            kx = kx - kx * 2;
-            if (debug == true && rodder.hasPermission("fishingkb.admin")) { //디버그 모드
-                rodder.sendMessage(kx + " " + kz);
+    }
+    @EventHandler
+    public void fishinghooking(PlayerFishEvent e) {
+        if (e.getCaught() == null) { return; }
+        Entity entity = (Entity) e.getCaught();
+        LivingEntity le = (LivingEntity) e.getCaught();
+        Player player = e.getPlayer();
+        if (entitytypes(entity.getType().toString()) == true && le.getNoDamageTicks()>1) {
+            player.getItemInHand().setDurability((short) (player.getItemInHand().getDurability() - 4));
+            if (player.getItemInHand().getDurability() <= 64) {
+                player.setItemInHand(null);
             }
-            if (player.getName().equalsIgnoreCase(rodder.getName()) || player.getGameMode() == GameMode.CREATIVE) { //자신이나 크리 떄리기 방지
-                hook.remove();
-                return;
-            }
-            if (player.getNoDamageTicks() >= 10) {
-                hook.remove();
-                return;
-            }
-            else if (player.getNoDamageTicks() < 10 && player.getLocation().getWorld().getBlockAt(player.getLocation()).getType().toString() != "AIR") {
-                player.setNoDamageTicks(0);
-            }
-            player.damage(0.01, rodder);
-            player.setVelocity(new Vector(kx, 0.365, kz));
-            if (endkbtoggle == false) {
-                hook.remove();
-            }
-            player.setNoDamageTicks(18);
-            return;
         }
         return;
     }
-
-
     @EventHandler
     public void playerOnJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
         if (kbtoggle == false && p.hasPermission("fishingkb.admin")) {
             p.sendMessage("[notice] " + ChatColor.RED + "Fishing hook knockback was disabled! by "+disabler);
         }
-        if (endkbtoggle == false && p.hasPermission("fishingkb.admin") && disabler_h == null) {
+        if (endkbtoggle == false && p.hasPermission("fishingkb.admin") && disabler_h != null) {
             p.sendMessage("[notice] " + ChatColor.RED + "Fishing hooking knockback was enabled! by " + disabler_h);
         }
     }
