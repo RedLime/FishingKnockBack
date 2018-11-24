@@ -16,6 +16,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerVelocityEvent;
@@ -160,7 +161,7 @@ public class Main extends JavaPlugin implements Listener {
             if (debug == true && hookShooter.hasPermission("fishingkb.admin")) {
                 hookShooter.sendMessage("Direction:"+kx + " " + kz);
             }
-            if (hitEntity.getNoDamageTicks() >= 8.5) {
+            if (hitEntity.getNoDamageTicks() >= 6.5) {
                 hook.remove();
                 hookShooter.getItemInHand().setDurability((short) (hookShooter.getItemInHand().getDurability() + 1));
                 if (hookShooter.getItemInHand().getDurability() >= 60) {
@@ -168,7 +169,7 @@ public class Main extends JavaPlugin implements Listener {
                 }
                 return;
             }
-            else if (hitEntity.getNoDamageTicks() < 8.5 && hitEntity.getLocation().getWorld().getBlockAt(hitEntity.getLocation()).getType().toString() != "AIR") {
+            else if (hitEntity.getNoDamageTicks() < 6.5 && hitEntity.getLocation().getWorld().getBlockAt(hitEntity.getLocation()).getType().toString() != "AIR") {
                 hitEntity.setNoDamageTicks(0);
             }
             hitEntity.damage(0.001, hookShooter);
