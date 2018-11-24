@@ -215,7 +215,7 @@ public class Main extends JavaPlugin implements Listener {
                 if (updater.checkForUpdates())
                     p.sendMessage(ChatColor.YELLOW + "FishingrodKnockback was updated! Please update! "+updater.getResourceURL()+"\n" +
                             ChatColor.GREEN+"new version : " + updater.getLatestVersion() +
-                            " / now version : " + getServer().getPluginManager().getPlugin("FishingRodKnockback").getDescription().getVersion()+"\n");
+                            " / now version : " + getServer().getPluginManager().getPlugin("FishingRodKnockback").getDescription().getVersion()+"\n ");
             } catch (Exception error) {
                 p.sendMessage("FishingrodCheck:"+error);
             }
