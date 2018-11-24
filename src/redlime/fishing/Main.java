@@ -186,6 +186,7 @@ public class Main extends JavaPlugin implements Listener {
     public void fishinghooking(PlayerFishEvent e) {
         if (e.getCaught() == null) { return; }
         Entity entity = (Entity) e.getCaught();
+        if (entity.getType() == EntityType.DROPPED_ITEM) { return; }
         LivingEntity le = (LivingEntity) e.getCaught();
         Player player = e.getPlayer();
         if (entitytypes(entity.getType().toString()) == true) {
