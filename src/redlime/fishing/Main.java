@@ -1,10 +1,13 @@
 package redlime.fishing;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -15,10 +18,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
-import sun.awt.CausedFocusEvent;
 
 
 @SuppressWarnings("ALL")
@@ -110,12 +112,13 @@ public class Main extends JavaPlugin implements Listener {
                 if (args[0].equalsIgnoreCase("hook")) {
                     if (endkbtoggle == true) {
                         p.sendMessage(ChatColor.GREEN + "Hooking Knockback is disable.");
+                        disabler_h = p.getName();
                         endkbtoggle = false;
                     }
                     else if (endkbtoggle == false) {
                         p.sendMessage(ChatColor.GREEN + "Hooking Knockback is enable. \n(if you using Viaversion, ProtocolSupport and OldCombatMechanics. Knockback when pulling a fishing rod may not work properly)");
                         endkbtoggle = true;
-                        disabler_h = p.getName();
+
                     }
                     return false;
                 }
@@ -136,7 +139,8 @@ public class Main extends JavaPlugin implements Listener {
     public void onRodLand(ProjectileHitEvent e) {
         if (debug == true) {
             Player player = (Player) e.getEntity().getShooter();
-            player.sendMessage(e.getHitEntity().getType().toString());
+            if (player.isOp() == true) {
+            player.sendMessage("entity:"+e.getHitEntity().getType().toString()); }
         }
         if (kbtoggle == false || e.getHitEntity() == null) { //토글 기능 확인
             return;
@@ -154,13 +158,12 @@ public class Main extends JavaPlugin implements Listener {
             double kz = hook.getLocation().getDirection().getZ() / 2.5;
             kx = kx - kx * 2;
             if (debug == true && hookShooter.hasPermission("fishingkb.admin")) {
-                hookShooter.sendMessage(kx + " " + kz);
-                hookShooter.sendMessage(kx + " " + kz);
+                hookShooter.sendMessage("Direction:"+kx + " " + kz);
             }
             if (hitEntity.getNoDamageTicks() >= 8.5) {
                 hook.remove();
                 hookShooter.getItemInHand().setDurability((short) (hookShooter.getItemInHand().getDurability() + 1));
-                if (hookShooter.getItemInHand().getDurability() <= 64) {
+                if (hookShooter.getItemInHand().getDurability() >= 60) {
                     hookShooter.setItemInHand(null);
                 }
                 return;
@@ -177,20 +180,26 @@ public class Main extends JavaPlugin implements Listener {
             return;
         }
     }
+
     @EventHandler
     public void fishinghooking(PlayerFishEvent e) {
         if (e.getCaught() == null) { return; }
         Entity entity = (Entity) e.getCaught();
         LivingEntity le = (LivingEntity) e.getCaught();
         Player player = e.getPlayer();
-        if (entitytypes(entity.getType().toString()) == true && le.getNoDamageTicks()>1) {
+        if (entitytypes(entity.getType().toString()) == true) {
             player.getItemInHand().setDurability((short) (player.getItemInHand().getDurability() - 4));
-            if (player.getItemInHand().getDurability() <= 64) {
+            if (player.getItemInHand().getDurability() >= 60) {
                 player.setItemInHand(null);
             }
         }
+        if (debug == true && player.isOp() == true) {
+            player.sendMessage("Durability:"+String.valueOf(player.getItemInHand().getDurability()));
+        }
         return;
     }
+
+
     @EventHandler
     public void playerOnJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
@@ -199,6 +208,17 @@ public class Main extends JavaPlugin implements Listener {
         }
         if (endkbtoggle == false && p.hasPermission("fishingkb.admin") && disabler_h != null) {
             p.sendMessage("[notice] " + ChatColor.RED + "Fishing hooking knockback was enabled! by " + disabler_h);
+        }
+        if (p.hasPermission("fishingkb.admin")) {
+            SpigotUpdater updater = new SpigotUpdater(this, 62101);
+            try {
+                if (updater.checkForUpdates())
+                    p.sendMessage(ChatColor.YELLOW + "FishingrodKnockback was updated! Please update! "+updater.getResourceURL()+"\n" +
+                            ChatColor.GREEN+"new version : " + updater.getLatestVersion() +
+                            " / now version : " + getServer().getPluginManager().getPlugin("FishingRodKnockback").getDescription().getVersion()+"\n");
+            } catch (Exception error) {
+                p.sendMessage("FishingrodCheck:"+error);
+            }
         }
     }
 }
