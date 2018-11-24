@@ -207,7 +207,7 @@ public class Main extends JavaPlugin implements Listener {
             p.sendMessage("[notice] " + ChatColor.RED + "Fishing hook knockback was disabled! by "+disabler);
         }
         if (endkbtoggle == false && p.hasPermission("fishingkb.admin") && disabler_h != null) {
-            p.sendMessage("[notice] " + ChatColor.RED + "Fishing hooking knockback was enabled! by " + disabler_h);
+            p.sendMessage("[notice] " + ChatColor.RED + "Fishing hooking knockback was disabled! by " + disabler_h);
         }
         if (p.hasPermission("fishingkb.admin")) {
             SpigotUpdater updater = new SpigotUpdater(this, 62101);
