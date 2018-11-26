@@ -51,7 +51,7 @@ public class Main extends JavaPlugin implements Listener {
         this.getServer().getPluginManager().registerEvents(this, this);
         Server server = (Server) getServer();
         saveDefaultConfig();
-
+        //config
         getConfig().addDefault("DisableWorld", new ArrayList<String>());
         getConfig().addDefault("DisableEntityType", new ArrayList<String>());
         getConfig().addDefault("DisableUpdateNofitication", false);
