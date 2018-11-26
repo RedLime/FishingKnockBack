@@ -1,9 +1,5 @@
 package redlime.fishing;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,14 +8,13 @@ import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerVelocityEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -31,6 +26,7 @@ public class Main extends JavaPlugin implements Listener {
     boolean endkbtoggle = true;
     String disabler = null;
     String disabler_h = null;
+
 
     public static boolean entitytypes(String target) {
         ArrayList ent = new ArrayList();
@@ -54,9 +50,14 @@ public class Main extends JavaPlugin implements Listener {
     public void onEnable() {
         this.getServer().getPluginManager().registerEvents(this, this);
         Server server = (Server) getServer();
-        if (server.getPluginManager().isPluginEnabled("ViaVersion") == true || server.getPluginManager().isPluginEnabled("ProtocolSupport") == true || server.getPluginManager().isPluginEnabled("OldCombatMechanics") == true) {
-            endkbtoggle = false;
-        }
+        saveDefaultConfig();
+
+        getConfig().addDefault("DisableWorld", new ArrayList<String>());
+        getConfig().addDefault("DisableEntityType", new ArrayList<String>());
+        getConfig().addDefault("DisableUpdateNofitication", false);
+        FileConfiguration config = getConfig();
+        config.options().copyDefaults(true);
+        saveConfig();
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String lable, String[] args) {
@@ -73,13 +74,14 @@ public class Main extends JavaPlugin implements Listener {
                 return null;
             }});
 
-        if (lable.equalsIgnoreCase("fishingknockback") && p.hasPermission("fishingkb.admin")) {
+        if (cmd.getName().equalsIgnoreCase("fishingknockback") && p.hasPermission("fishingkb.admin")) {
             if(args.length == 0) {
                 p.sendMessage(ChatColor.GREEN + "\n==FishingRod Knockback by RED_LIME==");
                 p.sendMessage(ChatColor.GREEN + "Version : " + getServer().getPluginManager().getPlugin("FishingRodKnockback").getDescription().getVersion());
                 p.sendMessage(ChatColor.GREEN + "/fishingknockback on/off - toggle knockback");
                 p.sendMessage(ChatColor.GREEN + "/fishingknockback debug");
                 p.sendMessage(ChatColor.GREEN + "/fishingknockback hook - toggle hooking knockback");
+                p.sendMessage(ChatColor.GREEN + "/fishingknockback reload - reload config file");
                 return false;
             }
             else if(args.length > 0) {
@@ -123,12 +125,15 @@ public class Main extends JavaPlugin implements Listener {
                     }
                     return false;
                 }
+                if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("fishingkb.admin")) {
+                    this.reloadConfig();
+                    this.getConfig().options().copyDefaults(true);
+                    this.saveConfig();
+                    sender.sendMessage(ChatColor.GREEN+"FishingRodKnockback was reloaded!");
+                    return false;
+                }
                 else{
-                    p.sendMessage(ChatColor.GREEN + "\n==FishingRod Knockback by RED_LIME==");
-                    p.sendMessage(ChatColor.GREEN + "Version : " + getServer().getPluginManager().getPlugin("FishingRodKnockback").getDescription().getVersion());
-                    p.sendMessage(ChatColor.GREEN + "/fishingknockback on/off - toggle knockback");
-                    p.sendMessage(ChatColor.GREEN + "/fishingknockback debug");
-                    p.sendMessage(ChatColor.GREEN + "/fishingknockback hook - toggle hooking knockback");
+                    p.performCommand("fishingknockback");
                     return false;
                 }
             }
@@ -150,7 +155,12 @@ public class Main extends JavaPlugin implements Listener {
         if(e.getEntityType() != EntityType.FISHING_HOOK) { //낚싯찌 확인
             return;
         }
-
+        if(getConfig().getList("DisableWorld").toString().contains(e.getEntity().getLocation().getWorld().getName().toString()) == true) {
+            return;
+        }
+        if(e.getHitEntity().getType() != EntityType.PLAYER && getConfig().getList("DisableEntityType").contains(e.getHitEntity().getType().toString()) == true) {
+            return;
+        }
         if (entitytypes(e.getHitEntity().getType().toString()) == true) { //엔티티 처리
             FishHook hook = (FishHook) e.getEntity();
             Player hookShooter = (Player) hook.getShooter();
@@ -205,13 +215,17 @@ public class Main extends JavaPlugin implements Listener {
     @EventHandler
     public void playerOnJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
+        Server server = getServer();
+        if (server.getPluginManager().isPluginEnabled("ViaVersion") == true || server.getPluginManager().isPluginEnabled("ProtocolSupport") == true || server.getPluginManager().isPluginEnabled("OldCombatMechanics") == true) {
+            endkbtoggle = false;
+        }
         if (kbtoggle == false && p.hasPermission("fishingkb.admin")) {
             p.sendMessage("[notice] " + ChatColor.RED + "Fishing hook knockback was disabled! by "+disabler);
         }
         if (endkbtoggle == false && p.hasPermission("fishingkb.admin") && disabler_h != null) {
             p.sendMessage("[notice] " + ChatColor.RED + "Fishing hooking knockback was disabled! by " + disabler_h);
         }
-        if (p.hasPermission("fishingkb.admin")) {
+        if (p.hasPermission("fishingkb.admin") && getConfig().getBoolean("DisableUpdateNofitication") == false) {
             SpigotUpdater updater = new SpigotUpdater(this, 62101);
             try {
                 if (updater.checkForUpdates())
