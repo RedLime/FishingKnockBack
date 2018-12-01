@@ -9,5 +9,6 @@ Permission and Command : \
 /fishingknockback help - fishingkb.admin \
 /fishingknockback reload - fishingkb.admin \
 /fishingknockback dubug - fishingkb.admin \
+/fishingknockback config <entity/world> - fishingkb.admin \
 \
 Well done!
