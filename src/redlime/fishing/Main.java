@@ -1,13 +1,11 @@
 package redlime.fishing;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -21,6 +19,8 @@ import org.bukkit.util.Vector;
 
 @SuppressWarnings("ALL")
 public class Main extends JavaPlugin implements Listener {
+
+    public static Main plugin;
     boolean kbtoggle = true;
     boolean debug = false;
     boolean endkbtoggle = true;
@@ -40,12 +40,15 @@ public class Main extends JavaPlugin implements Listener {
         ent.add("SILVERFISH"); ent.add("SKELETON"); ent.add("SKELETON_HORSE"); ent.add("SLIME"); ent.add("SNOWMAN");
         ent.add("SPIDER"); ent.add("STRAY"); ent.add("VEX"); ent.add("VILLAGER"); ent.add("VINDICATOR"); ent.add("WITCH");
         ent.add("WITHER"); ent.add("WITHER_SKELETON"); ent.add("WOLF"); ent.add("ZOMBIE"); ent.add("ZOMBIE_HORSE");
-        ent.add("ZOMBIE_VILLAGER"); ent.add("DONKEY"); ent.add("PLAYER");
+        ent.add("ZOMBIE_VILLAGER"); ent.add("DONKEY"); ent.add("PLAYER"); ent.add("COD"); ent.add("DROWNED");
+        ent.add("PHANTOM"); ent.add("TNT"); ent.add("PRIMED_TNT"); ent.add("TROPICAL_FISH"); ent.add("TURTLE");
+        ent.add("SALMON"); ent.add("PUFFERFISH");
         if (ent.contains(target)) {
             return true;
         }
         return false;
     }
+
 
     public void onEnable() {
         this.getServer().getPluginManager().registerEvents(this, this);
@@ -58,30 +61,24 @@ public class Main extends JavaPlugin implements Listener {
         FileConfiguration config = getConfig();
         config.options().copyDefaults(true);
         saveConfig();
+
+        getCommand("fishingknockback").setTabCompleter(new TabCompleter());
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String lable, String[] args) {
         Player p = (Player) sender;
 
-        getCommand("fishingknockback").setTabCompleter(new TabCompleter() {
-            @Override
-            public List<String> onTabComplete(CommandSender commandSender, Command command, String s, String[] strings) {
-                List<String> list = new ArrayList<>();
-                if (command.getName().equalsIgnoreCase("fishingknockback") && strings.length == 0) {
-                    list.add("americano");
-                    return list;
-                }
-                return null;
-            }});
-
         if (cmd.getName().equalsIgnoreCase("fishingknockback") && p.hasPermission("fishingkb.admin")) {
             if(args.length == 0) {
-                p.sendMessage(ChatColor.GREEN + "\n==FishingRod Knockback by RED_LIME==");
-                p.sendMessage(ChatColor.GREEN + "Version : " + getServer().getPluginManager().getPlugin("FishingRodKnockback").getDescription().getVersion());
-                p.sendMessage(ChatColor.GREEN + "/fishingknockback on/off - toggle knockback");
-                p.sendMessage(ChatColor.GREEN + "/fishingknockback debug");
-                p.sendMessage(ChatColor.GREEN + "/fishingknockback hook - toggle hooking knockback");
-                p.sendMessage(ChatColor.GREEN + "/fishingknockback reload - reload config file");
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&',"&e&l___________________________________________________"));
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&',"\n&e&l          FishingRod Knockback by RED_LIME"));
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&',"&eVersion : " + getServer().getPluginManager().getPlugin("FishingRodKnockback").getDescription().getVersion()));
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&',"&a/fishingknockback on/off - &ftoggle knockback"));
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&',"&a/fishingknockback debug"));
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&',"&a/fishingknockback hook - &ftoggle knockback"));
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&',"&a/fishingknockback reload - &freload config file"));
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&',"&a/fishingknockback config <entity/world> - \n      &fAdd a knockback to the <entity/world> to handle exceptions"));
+                p.sendMessage(ChatColor.translateAlternateColorCodes('&',"&e&l___________________________________________________"));
                 return false;
             }
             else if(args.length > 0) {
@@ -91,16 +88,19 @@ public class Main extends JavaPlugin implements Listener {
                     p.sendMessage(ChatColor.GREEN + "FishingRod Knockback is now enable.");
                     return false;
                 }
+
                 if (args[0].equalsIgnoreCase("off")) {
                     kbtoggle = false;
                     disabler = p.getName();
                     p.sendMessage(ChatColor.RED + "FishingRod Knockback is now disable.");
                     return false;
                 }
+
                 if (args[0].equalsIgnoreCase("help")) {
                     p.performCommand("fishingknockback");
                     return false;
                 }
+
                 if (args[0].equalsIgnoreCase("debug")) {
                     if (debug == true) {
                         p.sendMessage(ChatColor.GREEN + "DebugMode disable.");
@@ -112,6 +112,7 @@ public class Main extends JavaPlugin implements Listener {
                     }
                     return false;
                 }
+
                 if (args[0].equalsIgnoreCase("hook")) {
                     if (endkbtoggle == true) {
                         p.sendMessage(ChatColor.GREEN + "Hooking Knockback is disable.");
@@ -125,11 +126,68 @@ public class Main extends JavaPlugin implements Listener {
                     }
                     return false;
                 }
+
                 if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("fishingkb.admin")) {
                     this.reloadConfig();
                     this.getConfig().options().copyDefaults(true);
                     this.saveConfig();
                     sender.sendMessage(ChatColor.GREEN+"FishingRodKnockback was reloaded!");
+                    return false;
+                }
+
+                if (args[0].equalsIgnoreCase("config") && sender.hasPermission("fishingkb.admin")) {
+                    if (args.length == 1) {
+                        sender.sendMessage(ChatColor.RED+"Invalid instruction format. (/fishingknockback config <entity/world>)");
+                        return false;
+                    }
+                    if (args[1].equalsIgnoreCase("world")) {
+                        if (args.length == 2) {
+                            sender.sendMessage(ChatColor.RED+"Please put the name of the world. (/fishingknockback config world <Worldname>)");
+                        }
+                        if (args.length == 3) {
+                            if (getConfig().getList("DisableEntityType").contains(args[2])) {
+                                ArrayList<String> dworld = (ArrayList<String>)getConfig().getList("DisableWorld");
+                                if(dworld == null) dworld = new ArrayList<String>();
+                                dworld.remove(args[2]);
+                                getConfig().set("DisableWorld", dworld);
+                                saveConfig();
+                                sender.sendMessage(ChatColor.GREEN+"Exception knockback world setting successed! (Deleted)");
+                                return false;
+                            }
+                            ArrayList<String> dworld = (ArrayList<String>)getConfig().getList("DisableWorld");
+                            if(dworld == null) dworld = new ArrayList<String>();
+                            dworld.add(args[2]);
+                            getConfig().set("DisableWorld", dworld);
+                            saveConfig();
+                            sender.sendMessage(ChatColor.GREEN+"Exception knockback world setting successed!");
+                        }
+                    }
+                    if (args[1].equalsIgnoreCase("entity")) {
+                        if (args.length == 2) {
+                            sender.sendMessage(ChatColor.RED+"Please put the type of the entity. (/fishingknockback config entity <TYPE>)");
+                        }
+                        if (args.length == 3) {
+                            if (entitytypes(args[2]) == false) {
+                                sender.sendMessage(ChatColor.RED+"Entities that are not originally knocked back can not be set");
+                                return false;
+                            }
+                            if (getConfig().getList("DisableEntityType").contains(args[2])) {
+                                ArrayList<String> dentity = (ArrayList<String>)getConfig().getList("DisableEntityType");
+                                if(dentity == null) dentity = new ArrayList<String>();
+                                dentity.remove(args[2]);
+                                getConfig().set("DisableEntityType", dentity);
+                                saveConfig();
+                                sender.sendMessage(ChatColor.GREEN+"Entity knockback setup succeeded! (Deleted)");
+                                return false;
+                            }
+                            ArrayList<String> dentity = (ArrayList<String>)getConfig().getList("DisableEntityType");
+                            if(dentity == null) dentity = new ArrayList<String>();
+                            dentity.add(args[2]);
+                            getConfig().set("DisableEntityType", dentity);
+                            saveConfig();
+                            sender.sendMessage(ChatColor.GREEN+"Entity knockback setup succeeded!");
+                        }
+                    }
                     return false;
                 }
                 else{
