@@ -7,6 +7,7 @@ Permission and Command : \
 /fishingknockback off - fishingkb.admin \
 /fishingknockback hook - fishingkb.admin \
 /fishingknockback help - fishingkb.admin \
+/fishingknockback reload - fishingkb.admin \
 /fishingknockback dubug - fishingkb.admin \
 \
 Well done!
