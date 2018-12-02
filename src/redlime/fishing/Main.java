@@ -147,9 +147,8 @@ public class Main extends JavaPlugin implements Listener {
                             sender.sendMessage(ChatColor.RED+"Please put the name of the world. (/fishingknockback config world <Worldname>)");
                         }
                         if (args.length == 3) {
-                            if (getConfig().getList("DisableEntityType").contains(args[2])) {
+                            if (getConfig().getList("DisableWorld").contains(args[2])) {
                                 ArrayList<String> dworld = (ArrayList<String>)getConfig().getList("DisableWorld");
-                                if(dworld == null) dworld = new ArrayList<String>();
                                 dworld.remove(args[2]);
                                 getConfig().set("DisableWorld", dworld);
                                 saveConfig();
@@ -175,7 +174,6 @@ public class Main extends JavaPlugin implements Listener {
                             }
                             if (getConfig().getList("DisableEntityType").contains(args[2])) {
                                 ArrayList<String> dentity = (ArrayList<String>)getConfig().getList("DisableEntityType");
-                                if(dentity == null) dentity = new ArrayList<String>();
                                 dentity.remove(args[2]);
                                 getConfig().set("DisableEntityType", dentity);
                                 saveConfig();
