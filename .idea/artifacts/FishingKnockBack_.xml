@@ -4,6 +4,7 @@
     <root id="archive" name="FishingKnockBack_.jar">
       <element id="module-output" name="FishingKnockBack" />
       <element id="library" level="project" name="spigot-api-1.12.2-R0.1-SNAPSHOT" />
+      <element id="library" level="project" name="worldguard-bukkit-6.2.2" />
     </root>
   </artifact>
 </component>

@@ -4,6 +4,10 @@ package redlime.fishing;
 
 import java.util.ArrayList;
 
+import com.sk89q.worldguard.bukkit.WGBukkit;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.ApplicableRegionSet;
+import com.sk89q.worldguard.protection.flags.DefaultFlag;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
@@ -15,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -23,9 +28,11 @@ import org.bukkit.util.Vector;
 public class Main extends JavaPlugin implements Listener {
 
     public static Main plugin;
+    private Metrics metrics;
     boolean kbtoggle = true;
     boolean debug = false;
     boolean endkbtoggle = true;
+    boolean worldGuard = false;
     String disabler = null;
     String disabler_h = null;
 
@@ -64,7 +71,25 @@ public class Main extends JavaPlugin implements Listener {
         config.options().copyDefaults(true);
         saveConfig();
 
+        metrics = new Metrics(this);
         getCommand("fishingknockback").setTabCompleter(new TabCompleter());
+
+    }
+
+    private WorldGuardPlugin getWorldGuard() {
+        Plugin plugin = getServer().getPluginManager().getPlugin("WorldGuard");
+
+        // WorldGuard may not be loaded
+        if (plugin == null || !(plugin instanceof WorldGuardPlugin)) {
+            worldGuard = true;
+            return null; // Maybe you want throw an exception instead
+        }
+
+        return (WorldGuardPlugin) plugin;
+    }
+
+    public Metrics getMetrics() {
+        return this.metrics;
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String lable, String[] args) {
@@ -223,9 +248,15 @@ public class Main extends JavaPlugin implements Listener {
             FishHook hook = (FishHook) e.getEntity();
             Player hookShooter = (Player) hook.getShooter();
             LivingEntity hitEntity = (LivingEntity) e.getHitEntity();
+
+            ApplicableRegionSet region = WGBukkit.getRegionManager(hitEntity.getWorld()).getApplicableRegions(hitEntity.getLocation());
+
+            hookShooter.sendMessage(region.getFlag(DefaultFlag.PVP).toString()); //Check this
+
             double kx = hook.getLocation().getDirection().getX() / 2.5;
             double kz = hook.getLocation().getDirection().getZ() / 2.5;
             kx = kx - kx * 2;
+
             if (debug == true && hookShooter.hasPermission("fishingkb.admin")) {
                 hookShooter.sendMessage("Direction:"+kx + " " + kz);
             }
