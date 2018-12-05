@@ -3,6 +3,7 @@
 package redlime.fishing;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import com.sk89q.worldguard.bukkit.WGBukkit;
 import com.sk89q.worldguard.protection.regions.ProtectedRegion;
@@ -234,9 +235,16 @@ public class Main extends JavaPlugin implements Listener {
 
             if (worldGuard == true) {
                 for(ProtectedRegion r : WGBukkit.getRegionManager(hitEntity.getWorld()).getApplicableRegions(hitEntity.getLocation())) {
-                    if (r.getFlags().toString().contains("StateFlag{name='pvp'}=DENY") == true) {
-                        if (debug == true) { hookShooter.sendMessage("Detected WorldGuard flag!"); }
-                        return;
+                    List<String> flag = new ArrayList<>(); flag.add("StateFlag{name='pvp'}=DENY"); flag.add("StateFlag{name='invincible'}=ALLOW");
+                    int i;
+                    for (i=0;i<2;i=i+1) {
+                        if (r.getFlags().toString().contains(flag.get(i)) == true) {
+                            if (debug == true) {
+                                hookShooter.sendMessage("Detected WorldGuard flag!" + r.getFlags().toString());
+                            }
+                            hook.remove();
+                            return;
+                        }
                     }
                 }
             }
