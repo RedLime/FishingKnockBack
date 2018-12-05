@@ -216,7 +216,7 @@ public class Main extends JavaPlugin implements Listener {
         if (debug == true) {
             Player player = (Player) e.getEntity().getShooter();
             if (player.isOp() == true) {
-            player.sendMessage("entity:"+e.getHitEntity().getType().toString()); }
+            player.sendMessage(ChatColor.YELLOW + "Entity Type : "+e.getHitEntity().getType().toString()); }
         }
         if (kbtoggle == false || e.getHitEntity() == null) { //토글 기능 확인
             return;
