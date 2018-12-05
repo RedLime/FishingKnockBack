@@ -258,7 +258,6 @@ public class Main extends JavaPlugin implements Listener {
                 hitEntity.setNoDamageTicks(0);
             }
 
-            hitEntity.setHealth(hitEntity.getHealth()+0.001);
             hitEntity.damage(0.001, hookShooter);
             double upVel = 0.372;
             if (hitEntity.isOnGround() == false) { upVel = 0; }
