@@ -49,12 +49,10 @@ public class TabCompleter implements org.bukkit.command.TabCompleter {
                 }
                 else if (args[1].equalsIgnoreCase("world") && args.length == 3) {
                     List<String> wor = new ArrayList<>();
-                    ArrayList<String> worlds = new ArrayList<>();
                     int i;
                     for (i=0; i<Bukkit.getWorlds().size(); i=i+1) {
                         wor.add(Bukkit.getWorlds().get(i).getName());
                     }
-
                     return wor;
                 }
             }

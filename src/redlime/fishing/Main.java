@@ -5,9 +5,7 @@ package redlime.fishing;
 import java.util.ArrayList;
 
 import com.sk89q.worldguard.bukkit.WGBukkit;
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.protection.ApplicableRegionSet;
-import com.sk89q.worldguard.protection.flags.DefaultFlag;
+import com.sk89q.worldguard.protection.regions.ProtectedRegion;
 import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
@@ -17,9 +15,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.ProjectileHitEvent;
-import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.Vector;
 
@@ -73,19 +69,9 @@ public class Main extends JavaPlugin implements Listener {
 
         metrics = new Metrics(this);
         getCommand("fishingknockback").setTabCompleter(new TabCompleter());
-
-    }
-
-    private WorldGuardPlugin getWorldGuard() {
-        Plugin plugin = getServer().getPluginManager().getPlugin("WorldGuard");
-
-        // WorldGuard may not be loaded
-        if (plugin == null || !(plugin instanceof WorldGuardPlugin)) {
+        if (getServer().getPluginManager().isPluginEnabled("WorldGuard")) {
             worldGuard = true;
-            return null; // Maybe you want throw an exception instead
         }
-
-        return (WorldGuardPlugin) plugin;
     }
 
     public Metrics getMetrics() {
@@ -135,6 +121,7 @@ public class Main extends JavaPlugin implements Listener {
                     }
                     else if (debug == false) {
                         p.sendMessage(ChatColor.GREEN + "DebugMode enable.");
+                        p.sendMessage(ChatColor.GREEN + "worldguard_boolean : "+ worldGuard);
                         debug = true;
                     }
                     return false;
@@ -249,55 +236,35 @@ public class Main extends JavaPlugin implements Listener {
             Player hookShooter = (Player) hook.getShooter();
             LivingEntity hitEntity = (LivingEntity) e.getHitEntity();
 
-            ApplicableRegionSet region = WGBukkit.getRegionManager(hitEntity.getWorld()).getApplicableRegions(hitEntity.getLocation());
-
-            hookShooter.sendMessage(region.getFlag(DefaultFlag.PVP).toString()); //Check this
-
             double kx = hook.getLocation().getDirection().getX() / 2.5;
             double kz = hook.getLocation().getDirection().getZ() / 2.5;
             kx = kx - kx * 2;
-
+            if (worldGuard == true) {
+                for(ProtectedRegion r : WGBukkit.getRegionManager(hitEntity.getWorld()).getApplicableRegions(hitEntity.getLocation())) {
+                    if (r.getFlags().toString().contains("StateFlag{name='pvp'}=DENY") == true) {
+                        if (debug == true) { hookShooter.sendMessage("Detected WorldGuard flag!"); }
+                        return;
+                    }
+                }
+            }
             if (debug == true && hookShooter.hasPermission("fishingkb.admin")) {
                 hookShooter.sendMessage("Direction:"+kx + " " + kz);
             }
             if (hitEntity.getNoDamageTicks() >= 6.5) {
-                hook.remove();
-                hookShooter.getItemInHand().setDurability((short) (hookShooter.getItemInHand().getDurability() + 1));
-                if (hookShooter.getItemInHand().getDurability() >= 60) {
-                    hookShooter.setItemInHand(null);
-                }
                 return;
             }
             else if (hitEntity.getNoDamageTicks() < 6.5 && hitEntity.getLocation().getWorld().getBlockAt(hitEntity.getLocation()).getType().toString() != "AIR") {
                 hitEntity.setNoDamageTicks(0);
             }
+            hitEntity.setHealth(hitEntity.getHealth()+0.001);
             hitEntity.damage(0.001, hookShooter);
-            double upVel = 0.37;
+            double upVel = 0.372;
             if (hitEntity.isOnGround() == false) { upVel = 0; }
             hitEntity.setVelocity(new Vector(kx, upVel, kz));
             if (endkbtoggle == false) { hook.remove(); }
-            hitEntity.setNoDamageTicks(18);
+            hitEntity.setNoDamageTicks(17);
             return;
         }
-    }
-
-    @EventHandler
-    public void fishinghooking(PlayerFishEvent e) {
-        if (e.getCaught() == null) { return; }
-        Entity entity = (Entity) e.getCaught();
-        if (entity.getType() == EntityType.DROPPED_ITEM) { return; }
-        LivingEntity le = (LivingEntity) e.getCaught();
-        Player player = e.getPlayer();
-        if (entitytypes(entity.getType().toString()) == true) {
-            player.getItemInHand().setDurability((short) (player.getItemInHand().getDurability() - 4));
-            if (player.getItemInHand().getDurability() >= 60) {
-                player.setItemInHand(null);
-            }
-        }
-        if (debug == true && player.isOp() == true) {
-            player.sendMessage("Durability:"+String.valueOf(player.getItemInHand().getDurability()));
-        }
-        return;
     }
 
 

@@ -4,10 +4,7 @@ version: '1.8.0'
 description: Added fishing rod knockback at 1.8.9 version
 author: RedLime
 authors: [B4TT3RY__ (Support), Mathshyun, iShadey]
-loadafter:
-  - ViaVersion
-  - ProtocolSupport
-  - OldCombatMechanics
+softdepend: [ViaVersion, ProtocolSupport, OldCombatMechanics, WorldGuard]
 commands:
   fishingknockback:
     aliases: fkb
