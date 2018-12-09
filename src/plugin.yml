@@ -1,6 +1,6 @@
 main: redlime.fishing.Main
 name: FishingRodKnockback
-version: '1.8.0.1'
+version: '1.8.1'
 description: Added fishing rod knockback at 1.8.9 version
 author: RedLime
 authors: [B4TT3RY__ (Support), Mathshyun, iShadey]
