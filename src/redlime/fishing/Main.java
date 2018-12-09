@@ -213,7 +213,7 @@ public class Main extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onRodLand(ProjectileHitEvent e) {
-        if (e.getEntity() == null || e.getEntity().getShooter() == e.getHitEntity() || e.getHitEntity() == null) {
+        if (e.getEntity() == null || e.getEntity().getShooter() == e.getHitEntity() || e.getHitEntity() == null || e == null) {
             return;
         } else {
             if (debug == true) {
