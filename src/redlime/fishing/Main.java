@@ -213,60 +213,80 @@ public class Main extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onRodLand(ProjectileHitEvent e) {
-        if (e.getEntity() == null || e.getEntity().getShooter() == e.getHitEntity()) { return; }
-        if (debug == true) {
-            Player player = (Player) e.getEntity().getShooter();
-            if (player.hasPermission("fishingkb.admin") == true) { player.sendMessage(ChatColor.YELLOW + "Entity Type : "+e.getHitEntity().getType().toString()); }
-        }
-        if (kbtoggle == false || e.getHitEntity() == null) { return; }
-        if(e.getEntityType() != EntityType.FISHING_HOOK) { return; }
-        if(getConfig().getList("DisableWorld").toString().contains(e.getEntity().getLocation().getWorld().getName().toString()) == true) {  return; }
-        if(e.getHitEntity().getType() != EntityType.PLAYER && getConfig().getList("DisableEntityType").contains(e.getHitEntity().getType().toString()) == true) { return; }
+        if (e.getEntity() == null || e.getEntity().getShooter() == e.getHitEntity() || e.getHitEntity() == null) {
+            return;
+        } else {
+            if (debug == true) {
+                Player player = (Player) e.getEntity().getShooter();
+                if (player.hasPermission("fishingkb.admin") == true) {
+                    player.sendMessage(ChatColor.YELLOW + "Entity Type : " + e.getHitEntity().getType().toString());
+                }
+            }
+            if (kbtoggle == false || e.getHitEntity() == null) {
+                return;
+            }
+            if (e.getEntityType() != EntityType.FISHING_HOOK) {
+                return;
+            }
+            if (getConfig().getList("DisableWorld").toString().contains(e.getEntity().getLocation().getWorld().getName().toString()) == true) {
+                return;
+            }
+            if (e.getHitEntity().getType() != EntityType.PLAYER && getConfig().getList("DisableEntityType").contains(e.getHitEntity().getType().toString()) == true) {
+                return;
+            }
 
-        if (entitytypes(e.getHitEntity().getType().toString()) == true) { //엔티티 처리
+            if (entitytypes(e.getHitEntity().getType().toString()) == true) { //엔티티 처리
 
-            FishHook hook = (FishHook) e.getEntity();
-            Player hookShooter = (Player) hook.getShooter();
-            LivingEntity hitEntity = (LivingEntity) e.getHitEntity();
+                FishHook hook = (FishHook) e.getEntity();
+                Player hookShooter = (Player) hook.getShooter();
+                LivingEntity hitEntity = (LivingEntity) e.getHitEntity();
 
-            double kx = hook.getLocation().getDirection().getX() / 2.5;
-            double kz = hook.getLocation().getDirection().getZ() / 2.5;
-            kx = kx - kx * 2;
+                double kx = hook.getLocation().getDirection().getX() / 2.5;
+                double kz = hook.getLocation().getDirection().getZ() / 2.5;
+                kx = kx - kx * 2;
 
-            if (worldGuard == true) {
-                for(ProtectedRegion r : WGBukkit.getRegionManager(hitEntity.getWorld()).getApplicableRegions(hitEntity.getLocation())) {
-                    List<String> flag = new ArrayList<>(); flag.add("StateFlag{name='pvp'}=DENY"); flag.add("StateFlag{name='invincible'}=ALLOW");
-                    int i;
-                    for (i=0;i<2;i=i+1) {
-                        if (r.getFlags().toString().contains(flag.get(i)) == true) {
-                            if (debug == true) {
-                                hookShooter.sendMessage("Detected WorldGuard flag!" + r.getFlags().toString());
+                if (worldGuard == true) {
+                    for (ProtectedRegion r : WGBukkit.getRegionManager(hitEntity.getWorld()).getApplicableRegions(hitEntity.getLocation())) {
+                        List<String> flag = new ArrayList<>();
+                        flag.add("StateFlag{name='pvp'}=DENY");
+                        flag.add("StateFlag{name='invincible'}=ALLOW");
+                        int i;
+                        for (i = 0; i < 2; i = i + 1) {
+                            if (r.getFlags().toString().contains(flag.get(i)) == true) {
+                                if (debug == true) {
+                                    hookShooter.sendMessage("Detected WorldGuard flag!" + r.getFlags().toString());
+                                }
+                                hook.remove();
+                                return;
                             }
-                            hook.remove();
-                            return;
                         }
                     }
                 }
+
+                if (debug == true && hookShooter.hasPermission("fishingkb.admin")) {
+                    hookShooter.sendMessage("Direction:" + kx + " " + kz);
+                }
+
+                if (hitEntity.getNoDamageTicks() >= 6.5) {
+                    return;
+                } else if (hitEntity.getNoDamageTicks() < 6.5 && hitEntity.getLocation().getWorld().getBlockAt(hitEntity.getLocation()).getType().toString() != "AIR") {
+                    hitEntity.setNoDamageTicks(0);
+                }
+
+                hitEntity.damage(0.001, hookShooter);
+                double upVel = 0.372;
+                if (hitEntity.isOnGround() == false) {
+                    upVel = 0;
+                }
+
+                hitEntity.setVelocity(new Vector(kx, upVel, kz));
+
+                if (endkbtoggle == false) {
+                    hook.remove();
+                }
+                hitEntity.setNoDamageTicks(17);
+                return;
             }
-
-            if (debug == true && hookShooter.hasPermission("fishingkb.admin")) {
-                hookShooter.sendMessage("Direction:"+kx + " " + kz);
-            }
-
-            if (hitEntity.getNoDamageTicks() >= 6.5) { return; }
-            else if (hitEntity.getNoDamageTicks() < 6.5 && hitEntity.getLocation().getWorld().getBlockAt(hitEntity.getLocation()).getType().toString() != "AIR") {
-                hitEntity.setNoDamageTicks(0);
-            }
-
-            hitEntity.damage(0.001, hookShooter);
-            double upVel = 0.372;
-            if (hitEntity.isOnGround() == false) { upVel = 0; }
-
-            hitEntity.setVelocity(new Vector(kx, upVel, kz));
-
-            if (endkbtoggle == false) { hook.remove(); }
-            hitEntity.setNoDamageTicks(17);
-            return;
         }
     }
 
